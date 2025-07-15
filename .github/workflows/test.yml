@@ -95,10 +95,13 @@ jobs:
       run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
 
     # カバレッジレポートをアップロード（オプション）
+    # CODECOVを使用する場合は、GitHubリポジトリの設定でCODECOV_TOKENを追加してください
     - name: カバレッジレポートのアップロード
       uses: codecov/codecov-action@v4
+      if: env.CODECOV_TOKEN != ''
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: false
 
   # セキュリティ監査
