@@ -14,15 +14,6 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust: [stable, beta, nightly]
-        # Allow failures on nightly
-        exclude:
-          - rust: nightly
-        include:
-          - rust: nightly
-            experimental: true
 
     steps:
     # Checkout repository
@@ -33,7 +24,6 @@ jobs:
     - name: Setup Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: ${{ matrix.rust }}
         components: rustfmt, clippy
 
     # Cache setup (reduce build time)
@@ -46,32 +36,26 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: Linux-cargo-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
+        key: Linux-cargo-stable-${{ hashFiles('**/Cargo.lock') }}
 
-    # Format check (stable only)
+    # Format check
     - name: Format check
-      if: matrix.rust == 'stable'
       run: cargo fmt --all -- --check
 
-    # Static analysis with Clippy (stable only)
+    # Static analysis with Clippy
     - name: Clippy
-      if: matrix.rust == 'stable'
       run: cargo clippy -- -D warnings
-      continue-on-error: ${{ matrix.experimental == true }}
 
     # Build
     - name: Build
       run: cargo build --verbose
-      continue-on-error: ${{ matrix.experimental == true }}
 
     # Run tests
     - name: Test
       run: cargo test --verbose
-      continue-on-error: ${{ matrix.experimental == true }}
 
     # Documentation generation test
     - name: Generate documentation
-      if: matrix.rust == 'stable'
       run: cargo doc --no-deps --document-private-items
 
   # Test coverage measurement (optional)
