@@ -6,7 +6,11 @@ use std::path::PathBuf;
 /// コマンドライン引数の定義
 #[derive(Parser, Debug)]
 #[command(name = "filesplit-rs")]
-#[command(about = "ファイル分割・結合ツール", long_about = None)]
+#[command(version = env!("CARGO_PKG_VERSION"))]
+#[command(
+    about = format!("ファイル分割・結合ツール v{}", env!("CARGO_PKG_VERSION")),
+    long_about = None
+)]
 pub struct Cli {
     /// 分割サイズを指定（-mオプションと同時に使用不可）
     #[arg(
