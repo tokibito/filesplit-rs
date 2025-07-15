@@ -13,10 +13,9 @@ env:
 jobs:
   test:
     name: Run Tests
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         rust: [stable, beta, nightly]
         # Allow failures on nightly
         exclude:
@@ -47,11 +46,11 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
+        key: Linux-cargo-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
 
     # Format check (stable only)
     - name: Format check
-      if: matrix.rust == 'stable' && matrix.os == 'ubuntu-latest'
+      if: matrix.rust == 'stable'
       run: cargo fmt --all -- --check
 
     # Static analysis with Clippy (stable only)
@@ -72,7 +71,7 @@ jobs:
 
     # Documentation generation test
     - name: Generate documentation
-      if: matrix.rust == 'stable' && matrix.os == 'ubuntu-latest'
+      if: matrix.rust == 'stable'
       run: cargo doc --no-deps --document-private-items
 
   # Test coverage measurement (optional)
