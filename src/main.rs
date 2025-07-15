@@ -15,7 +15,7 @@ use std::process;
 /// コマンドライン引数を解析し、ファイルの分割または結合を実行する
 fn main() {
     if let Err(e) = run() {
-        eprintln!("エラー: {}", e);
+        eprintln!("エラー: {e}");
         process::exit(1);
     }
 }
@@ -38,7 +38,7 @@ fn run() -> Result<()> {
 
             // 分割処理の開始を通知
             println!("ファイルを分割しています: {}", config.file_path.display());
-            println!("分割サイズ: {} バイト", size);
+            println!("分割サイズ: {size} バイト");
 
             // ファイル分割を実行
             let splitter = splitter::Splitter::new(size);

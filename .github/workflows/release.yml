@@ -1,4 +1,4 @@
-name: リリース
+name: Release
 
 # タグがプッシュされたときに実行
 on:
@@ -7,9 +7,9 @@ on:
       - 'v*'
 
 jobs:
-  # リリースビルド
+  # Release build
   build:
-    name: ビルド (${{ matrix.target }})
+    name: Build (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -38,30 +38,30 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Rustセットアップ
+    - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         targets: ${{ matrix.target }}
 
-    # muslターゲット用の依存関係（Linuxのみ）
-    - name: musl依存関係のインストール
+    # Dependencies for musl target (Linux only)
+    - name: Install musl dependencies
       if: matrix.target == 'x86_64-unknown-linux-musl'
       run: sudo apt-get update && sudo apt-get install -y musl-tools
 
-    # ビルド
-    - name: ビルド
+    # Build
+    - name: Build
       run: cargo build --release --target ${{ matrix.target }}
 
-    # アーカイブ作成（Linux/macOS）
-    - name: アーカイブ作成 (tar.gz)
+    # Create archive (Linux/macOS)
+    - name: Create archive (tar.gz)
       if: matrix.archive == 'tar.gz'
       run: |
         cd target/${{ matrix.target }}/release
         tar czf ../../../filesplit-rs-${{ matrix.target }}.tar.gz filesplit-rs
         cd -
 
-    # アーカイブ作成（Windows）
-    - name: アーカイブ作成 (zip)
+    # Create archive (Windows)
+    - name: Create archive (zip)
       if: matrix.archive == 'zip'
       shell: pwsh
       run: |
@@ -69,32 +69,32 @@ jobs:
         Compress-Archive -Path filesplit-rs.exe -DestinationPath ../../../filesplit-rs-${{ matrix.target }}.zip
         cd -
 
-    # アーティファクトのアップロード
-    - name: アーティファクトのアップロード
+    # Upload artifacts
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: filesplit-rs-${{ matrix.target }}
         path: filesplit-rs-${{ matrix.target }}.${{ matrix.archive }}
 
-  # GitHubリリースの作成
+  # Create GitHub release
   release:
-    name: リリース作成
+    name: Create Release
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # リリース作成に必要な権限
+      contents: write  # Required for release creation
     
     steps:
     - uses: actions/checkout@v4
 
-    # アーティファクトのダウンロード
-    - name: アーティファクトのダウンロード
+    # Download artifacts
+    - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
         path: artifacts
 
-    # リリースの作成
-    - name: リリース作成
+    # Create release
+    - name: Create release
       uses: softprops/action-gh-release@v1
       with:
         files: artifacts/**/*

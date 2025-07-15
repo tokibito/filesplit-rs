@@ -17,13 +17,12 @@ pub enum FileSplitError {
 impl fmt::Display for FileSplitError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            FileSplitError::InvalidSize(msg) => write!(f, "無効なサイズ指定: {}", msg),
-            FileSplitError::FileNotFound(path) => write!(f, "ファイルが見つかりません: {}", path),
-            FileSplitError::IoError(err) => write!(f, "I/Oエラー: {}", err),
+            FileSplitError::InvalidSize(msg) => write!(f, "無効なサイズ指定: {msg}"),
+            FileSplitError::FileNotFound(path) => write!(f, "ファイルが見つかりません: {path}"),
+            FileSplitError::IoError(err) => write!(f, "I/Oエラー: {err}"),
             FileSplitError::NoSplitFiles(base) => write!(
                 f,
-                "分割ファイルが見つかりません: {}.001, {}.002, ...",
-                base, base
+                "分割ファイルが見つかりません: {base}.001, {base}.002, ..."
             ),
         }
     }

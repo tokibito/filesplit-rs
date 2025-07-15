@@ -21,7 +21,7 @@ impl Config {
     /// 文字列からサイズをパースする
     pub fn parse_size(size_str: &str) -> Result<usize> {
         size_str.parse::<usize>().map_err(|_| {
-            FileSplitError::InvalidSize(format!("'{}' は有効な数値ではありません", size_str))
+            FileSplitError::InvalidSize(format!("'{size_str}' は有効な数値ではありません"))
         })
     }
 }
