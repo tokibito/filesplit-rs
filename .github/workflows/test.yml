@@ -1,0 +1,116 @@
+name: テスト
+
+# プッシュされたときに実行
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: テスト実行
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [stable, beta, nightly]
+        # nightlyでの失敗を許可
+        exclude:
+          - rust: nightly
+        include:
+          - rust: nightly
+            experimental: true
+
+    steps:
+    # リポジトリをチェックアウト
+    - name: チェックアウト
+      uses: actions/checkout@v4
+
+    # Rustツールチェーンをセットアップ
+    - name: Rustツールチェーンのセットアップ
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: ${{ matrix.rust }}
+        components: rustfmt, clippy
+
+    # キャッシュの設定（ビルド時間短縮）
+    - name: キャッシュ
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
+
+    # フォーマットチェック（stableのみ）
+    - name: フォーマットチェック
+      if: matrix.rust == 'stable' && matrix.os == 'ubuntu-latest'
+      run: cargo fmt --all -- --check
+
+    # Clippyによる静的解析（stableのみ）
+    - name: Clippy
+      if: matrix.rust == 'stable'
+      run: cargo clippy -- -D warnings
+      continue-on-error: ${{ matrix.experimental == true }}
+
+    # ビルド
+    - name: ビルド
+      run: cargo build --verbose
+      continue-on-error: ${{ matrix.experimental == true }}
+
+    # テスト実行
+    - name: テスト
+      run: cargo test --verbose
+      continue-on-error: ${{ matrix.experimental == true }}
+
+    # ドキュメント生成テスト
+    - name: ドキュメント生成
+      if: matrix.rust == 'stable' && matrix.os == 'ubuntu-latest'
+      run: cargo doc --no-deps --document-private-items
+
+  # テストカバレッジ測定（オプション）
+  coverage:
+    name: カバレッジ測定
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+    - name: チェックアウト
+      uses: actions/checkout@v4
+
+    - name: Rustツールチェーンのセットアップ
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: tarpaulinのインストール
+      run: cargo install cargo-tarpaulin
+
+    - name: カバレッジ測定
+      run: cargo tarpaulin --verbose --all-features --workspace --timeout 120 --out xml
+
+    # カバレッジレポートをアップロード（オプション）
+    - name: カバレッジレポートのアップロード
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
+
+  # セキュリティ監査
+  security-audit:
+    name: セキュリティ監査
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: チェックアウト
+      uses: actions/checkout@v4
+
+    - name: セキュリティ監査
+      uses: actions-rs/audit-check@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}

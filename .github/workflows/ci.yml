@@ -1,0 +1,68 @@
+name: CI
+
+# プッシュとプルリクエストで実行
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # テストジョブ
+  test:
+    name: テスト (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    # ソースコードをチェックアウト
+    - uses: actions/checkout@v4
+
+    # Rustのセットアップ
+    - name: Rustセットアップ
+      uses: dtolnay/rust-toolchain@stable
+
+    # 依存関係のキャッシュ
+    - uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+    # ビルド
+    - name: ビルド
+      run: cargo build --verbose
+
+    # テスト実行
+    - name: テスト
+      run: cargo test --verbose
+
+  # リント・フォーマットチェック
+  lint:
+    name: リント・フォーマット
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Rustセットアップ
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    # フォーマットチェック
+    - name: フォーマットチェック
+      run: cargo fmt --all -- --check
+
+    # Clippyチェック
+    - name: Clippy
+      run: cargo clippy -- -D warnings

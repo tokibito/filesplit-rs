@@ -1,0 +1,103 @@
+name: リリース
+
+# タグがプッシュされたときに実行
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # リリースビルド
+  build:
+    name: ビルド (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          # Linux
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tar.gz
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            archive: tar.gz
+          
+          # Windows
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+          
+          # macOS
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            archive: tar.gz
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            archive: tar.gz
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Rustセットアップ
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+
+    # muslターゲット用の依存関係（Linuxのみ）
+    - name: musl依存関係のインストール
+      if: matrix.target == 'x86_64-unknown-linux-musl'
+      run: sudo apt-get update && sudo apt-get install -y musl-tools
+
+    # ビルド
+    - name: ビルド
+      run: cargo build --release --target ${{ matrix.target }}
+
+    # アーカイブ作成（Linux/macOS）
+    - name: アーカイブ作成 (tar.gz)
+      if: matrix.archive == 'tar.gz'
+      run: |
+        cd target/${{ matrix.target }}/release
+        tar czf ../../../filesplit-rs-${{ matrix.target }}.tar.gz filesplit-rs
+        cd -
+
+    # アーカイブ作成（Windows）
+    - name: アーカイブ作成 (zip)
+      if: matrix.archive == 'zip'
+      shell: pwsh
+      run: |
+        cd target/${{ matrix.target }}/release
+        Compress-Archive -Path filesplit-rs.exe -DestinationPath ../../../filesplit-rs-${{ matrix.target }}.zip
+        cd -
+
+    # アーティファクトのアップロード
+    - name: アーティファクトのアップロード
+      uses: actions/upload-artifact@v4
+      with:
+        name: filesplit-rs-${{ matrix.target }}
+        path: filesplit-rs-${{ matrix.target }}.${{ matrix.archive }}
+
+  # GitHubリリースの作成
+  release:
+    name: リリース作成
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    # アーティファクトのダウンロード
+    - name: アーティファクトのダウンロード
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    # リリースの作成
+    - name: リリース作成
+      uses: softprops/action-gh-release@v1
+      with:
+        files: artifacts/**/*
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
