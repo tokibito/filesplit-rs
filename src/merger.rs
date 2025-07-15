@@ -13,10 +13,10 @@ impl Merger {
     }
 
     /// 分割されたファイルを結合する
-    /// 
+    ///
     /// # 引数
     /// * `base_path` - 結合後のファイルパス
-    /// 
+    ///
     /// # 動作
     /// base_path.001, base_path.002, ...の形式のファイルを
     /// 順番に読み込んで、base_pathに結合する
@@ -24,7 +24,7 @@ impl Merger {
         // 出力ファイルを作成
         let output_file = File::create(base_path)?;
         let mut writer = BufWriter::new(output_file);
-        
+
         // 分割ファイルのインデックスとフラグを初期化
         let mut index = 1;
         let mut found_any = false;
@@ -47,7 +47,7 @@ impl Merger {
             }
 
             found_any = true;
-            
+
             // 分割ファイルを読み込んで出力ファイルに書き込む
             let mut reader = BufReader::new(File::open(&split_path)?);
             let mut buffer = Vec::new();
@@ -64,11 +64,11 @@ impl Merger {
     }
 
     /// 指定されたインデックスの分割ファイルパスを生成する
-    /// 
+    ///
     /// # 引数
     /// * `base_path` - 元ファイルのパス
     /// * `index` - ファイルのインデックス（1から始まる）
-    /// 
+    ///
     /// # 戻り値
     /// 例: "file.txt", 1 -> "file.txt.001"
     fn get_split_file_path(base_path: &Path, index: usize) -> PathBuf {
@@ -103,7 +103,7 @@ mod tests {
     fn test_get_split_file_path() {
         // 分割ファイルパスの生成をテスト
         let base = Path::new("/tmp/test.txt");
-        
+
         assert_eq!(
             Merger::get_split_file_path(base, 1),
             PathBuf::from("/tmp/test.txt.001")
@@ -119,21 +119,21 @@ mod tests {
         // 正常な結合処理のテスト
         let temp_dir = TempDir::new().unwrap();
         let base_path = temp_dir.path().join("test.txt");
-        
+
         // 分割ファイルを作成
         let mut file1 = fs::File::create(temp_dir.path().join("test.txt.001")).unwrap();
         file1.write_all(b"First part ").unwrap();
-        
+
         let mut file2 = fs::File::create(temp_dir.path().join("test.txt.002")).unwrap();
         file2.write_all(b"Second part ").unwrap();
-        
+
         let mut file3 = fs::File::create(temp_dir.path().join("test.txt.003")).unwrap();
         file3.write_all(b"Third part").unwrap();
-        
+
         // ファイルを結合
         let merger = Merger::new();
         merger.merge_files(&base_path).unwrap();
-        
+
         // 結合されたファイルの内容を確認
         let content = fs::read_to_string(&base_path).unwrap();
         assert_eq!(content, "First part Second part Third part");
@@ -144,21 +144,21 @@ mod tests {
         // 連番に欠けがある場合のテスト（.001, .002, .004があるが.003がない）
         let temp_dir = TempDir::new().unwrap();
         let base_path = temp_dir.path().join("test.txt");
-        
+
         // 分割ファイルを作成（.003をスキップ）
         let mut file1 = fs::File::create(temp_dir.path().join("test.txt.001")).unwrap();
         file1.write_all(b"Part 1 ").unwrap();
-        
+
         let mut file2 = fs::File::create(temp_dir.path().join("test.txt.002")).unwrap();
         file2.write_all(b"Part 2").unwrap();
-        
+
         let mut file4 = fs::File::create(temp_dir.path().join("test.txt.004")).unwrap();
         file4.write_all(b" Part 4").unwrap();
-        
+
         // ファイルを結合（.003で停止するはず）
         let merger = Merger::new();
         merger.merge_files(&base_path).unwrap();
-        
+
         // 結合されたファイルの内容を確認（.001と.002のみ）
         let content = fs::read_to_string(&base_path).unwrap();
         assert_eq!(content, "Part 1 Part 2");
@@ -169,10 +169,10 @@ mod tests {
         // 分割ファイルが存在しない場合のエラーテスト
         let temp_dir = TempDir::new().unwrap();
         let base_path = temp_dir.path().join("test.txt");
-        
+
         let merger = Merger::new();
         let result = merger.merge_files(&base_path);
-        
+
         assert!(result.is_err());
         match result.unwrap_err() {
             FileSplitError::NoSplitFiles(_) => (), // 期待通りのエラー
@@ -185,13 +185,13 @@ mod tests {
         // 分割ファイルが1つだけの場合のテスト
         let temp_dir = TempDir::new().unwrap();
         let base_path = temp_dir.path().join("test.txt");
-        
+
         let mut file1 = fs::File::create(temp_dir.path().join("test.txt.001")).unwrap();
         file1.write_all(b"Only one part").unwrap();
-        
+
         let merger = Merger::new();
         merger.merge_files(&base_path).unwrap();
-        
+
         let content = fs::read_to_string(&base_path).unwrap();
         assert_eq!(content, "Only one part");
     }
@@ -201,14 +201,14 @@ mod tests {
         // 空の分割ファイルを結合するテスト
         let temp_dir = TempDir::new().unwrap();
         let base_path = temp_dir.path().join("test.txt");
-        
+
         // 空のファイルを作成
         fs::File::create(temp_dir.path().join("test.txt.001")).unwrap();
         fs::File::create(temp_dir.path().join("test.txt.002")).unwrap();
-        
+
         let merger = Merger::new();
         merger.merge_files(&base_path).unwrap();
-        
+
         let content = fs::read_to_string(&base_path).unwrap();
         assert_eq!(content, "");
     }
@@ -218,11 +218,11 @@ mod tests {
         // 大きなインデックス番号のテスト
         let temp_dir = TempDir::new().unwrap();
         let base_path = temp_dir.path().join("test.txt");
-        
+
         // .999のファイルを作成
         let mut file = fs::File::create(temp_dir.path().join("test.txt.999")).unwrap();
         file.write_all(b"File 999").unwrap();
-        
+
         // .001がないのでエラーになるはず
         let merger = Merger::new();
         let result = merger.merge_files(&base_path);

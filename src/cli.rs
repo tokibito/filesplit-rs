@@ -32,7 +32,7 @@ pub struct Cli {
 
 impl Cli {
     /// コマンドライン引数を解析してConfigを生成する
-    /// 
+    ///
     /// # 戻り値
     /// 解析結果のConfig、またはエラー
     pub fn parse_args() -> Result<Config> {

@@ -55,7 +55,10 @@ mod tests {
         assert_eq!(err.to_string(), "ファイルが見つかりません: /path/to/file");
 
         let err = FileSplitError::NoSplitFiles("test.txt".to_string());
-        assert_eq!(err.to_string(), "分割ファイルが見つかりません: test.txt.001, test.txt.002, ...");
+        assert_eq!(
+            err.to_string(),
+            "分割ファイルが見つかりません: test.txt.001, test.txt.002, ..."
+        );
     }
 
     #[test]
@@ -63,7 +66,7 @@ mod tests {
         // std::io::Errorからの変換をテスト
         let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "test error");
         let file_split_error: FileSplitError = io_error.into();
-        
+
         match file_split_error {
             FileSplitError::IoError(_) => (), // 正しく変換された
             _ => panic!("予期しないエラー型"),
@@ -75,7 +78,7 @@ mod tests {
         // エラー型がSendとSyncを実装していることを確認
         fn assert_send<T: Send>() {}
         fn assert_sync<T: Sync>() {}
-        
+
         assert_send::<FileSplitError>();
         assert_sync::<FileSplitError>();
     }

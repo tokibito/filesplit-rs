@@ -11,7 +11,7 @@ pub struct BufferedReader {
 
 impl BufferedReader {
     /// 新しいBufferedReaderを作成する
-    /// 
+    ///
     /// # 引数
     /// * `path` - 読み込むファイルのパス
     pub fn new(path: &Path) -> Result<Self> {
@@ -22,10 +22,10 @@ impl BufferedReader {
     }
 
     /// ファイルから指定されたバッファサイズ分のデータを読み込む
-    /// 
+    ///
     /// # 引数
     /// * `buffer` - 読み込んだデータを格納するバッファ
-    /// 
+    ///
     /// # 戻り値
     /// 実際に読み込んだバイト数
     pub fn read_chunk(&mut self, buffer: &mut [u8]) -> Result<usize> {
@@ -50,7 +50,7 @@ mod tests {
         // BufferedReaderでファイルを読み込む
         let mut reader = BufferedReader::new(temp_file.path()).unwrap();
         let mut buffer = vec![0u8; 20];
-        
+
         let bytes_read = reader.read_chunk(&mut buffer).unwrap();
         assert_eq!(bytes_read, test_data.len());
         assert_eq!(&buffer[..bytes_read], test_data);
@@ -66,17 +66,17 @@ mod tests {
 
         let mut reader = BufferedReader::new(temp_file.path()).unwrap();
         let mut buffer = vec![0u8; 5];
-        
+
         // 最初の5バイトを読み込む
         let bytes_read = reader.read_chunk(&mut buffer).unwrap();
         assert_eq!(bytes_read, 5);
         assert_eq!(&buffer[..bytes_read], b"12345");
-        
+
         // 次の5バイトを読み込む
         let bytes_read = reader.read_chunk(&mut buffer).unwrap();
         assert_eq!(bytes_read, 5);
         assert_eq!(&buffer[..bytes_read], b"67890");
-        
+
         // EOFに達したことを確認
         let bytes_read = reader.read_chunk(&mut buffer).unwrap();
         assert_eq!(bytes_read, 0);
@@ -93,10 +93,10 @@ mod tests {
     fn test_buffered_reader_empty_file() {
         // 空のファイルを読み込むテスト
         let temp_file = NamedTempFile::new().unwrap();
-        
+
         let mut reader = BufferedReader::new(temp_file.path()).unwrap();
         let mut buffer = vec![0u8; 10];
-        
+
         let bytes_read = reader.read_chunk(&mut buffer).unwrap();
         assert_eq!(bytes_read, 0);
     }

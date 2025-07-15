@@ -13,7 +13,7 @@ pub struct SplitFileWriter {
 
 impl SplitFileWriter {
     /// 新しいSplitFileWriterを作成する
-    /// 
+    ///
     /// # 引数
     /// * `base_path` - 元ファイルのパス
     pub fn new(base_path: &Path) -> Self {
@@ -24,10 +24,10 @@ impl SplitFileWriter {
     }
 
     /// 次の分割ファイルにデータを書き込む
-    /// 
+    ///
     /// # 引数
     /// * `data` - 書き込むデータ
-    /// 
+    ///
     /// # 動作
     /// ファイル名に連番（.001, .002, ...）を付けて保存し、
     /// インデックスをインクリメントする
@@ -42,10 +42,10 @@ impl SplitFileWriter {
     }
 
     /// 指定されたインデックスの分割ファイルパスを生成する
-    /// 
+    ///
     /// # 引数
     /// * `index` - ファイルのインデックス（1から始まる）
-    /// 
+    ///
     /// # 戻り値
     /// 例: "file.txt" -> "file.txt.001"
     pub fn get_split_file_path(&self, index: usize) -> PathBuf {
@@ -78,7 +78,7 @@ mod tests {
     fn test_get_split_file_path() {
         // 分割ファイルパスの生成をテスト
         let writer = SplitFileWriter::new(Path::new("/tmp/test.txt"));
-        
+
         assert_eq!(
             writer.get_split_file_path(1),
             PathBuf::from("/tmp/test.txt.001")
@@ -98,21 +98,21 @@ mod tests {
         // ファイルへの書き込みをテスト
         let temp_dir = TempDir::new().unwrap();
         let base_path = temp_dir.path().join("test.txt");
-        
+
         let mut writer = SplitFileWriter::new(&base_path);
-        
+
         // 最初のファイルに書き込み
         writer.write_next_file(b"First chunk").unwrap();
         let first_file = temp_dir.path().join("test.txt.001");
         assert!(first_file.exists());
         assert_eq!(fs::read(&first_file).unwrap(), b"First chunk");
-        
+
         // 次のファイルに書き込み
         writer.write_next_file(b"Second chunk").unwrap();
         let second_file = temp_dir.path().join("test.txt.002");
         assert!(second_file.exists());
         assert_eq!(fs::read(&second_file).unwrap(), b"Second chunk");
-        
+
         // インデックスが正しく増加していることを確認
         assert_eq!(writer.current_index, 3);
     }
@@ -122,10 +122,10 @@ mod tests {
         // 空のデータの書き込みをテスト
         let temp_dir = TempDir::new().unwrap();
         let base_path = temp_dir.path().join("test.txt");
-        
+
         let mut writer = SplitFileWriter::new(&base_path);
         writer.write_next_file(b"").unwrap();
-        
+
         let file = temp_dir.path().join("test.txt.001");
         assert!(file.exists());
         assert_eq!(fs::read(&file).unwrap(), b"");
@@ -136,12 +136,12 @@ mod tests {
         // 大きなデータの書き込みをテスト
         let temp_dir = TempDir::new().unwrap();
         let base_path = temp_dir.path().join("test.txt");
-        
+
         let mut writer = SplitFileWriter::new(&base_path);
         let large_data = vec![b'X'; 10000];
-        
+
         writer.write_next_file(&large_data).unwrap();
-        
+
         let file = temp_dir.path().join("test.txt.001");
         assert!(file.exists());
         assert_eq!(fs::read(&file).unwrap().len(), 10000);

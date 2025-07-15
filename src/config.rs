@@ -46,7 +46,7 @@ mod tests {
         assert!(Config::parse_size("-100").is_err());
         assert!(Config::parse_size("12.34").is_err());
         assert!(Config::parse_size("").is_err());
-        
+
         // エラーメッセージの確認
         let err = Config::parse_size("abc").unwrap_err();
         match err {
@@ -81,7 +81,7 @@ mod tests {
             file_path: PathBuf::from("/tmp/test.txt"),
             mode: Mode::Split { size: 2048 },
         };
-        
+
         assert_eq!(config.file_path, PathBuf::from("/tmp/test.txt"));
         match config.mode {
             Mode::Split { size } => assert_eq!(size, 2048),

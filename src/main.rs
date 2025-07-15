@@ -11,7 +11,7 @@ use error::Result;
 use std::process;
 
 /// メイン関数
-/// 
+///
 /// コマンドライン引数を解析し、ファイルの分割または結合を実行する
 fn main() {
     if let Err(e) = run() {
@@ -28,7 +28,7 @@ fn run() -> Result<()> {
     match config.mode {
         Mode::Split { size } => {
             // 分割モードの処理
-            
+
             // ファイルの存在確認
             if !config.file_path.exists() {
                 return Err(error::FileSplitError::FileNotFound(
@@ -48,7 +48,7 @@ fn run() -> Result<()> {
         }
         Mode::Merge => {
             // 結合モードの処理
-            
+
             // 結合処理の開始を通知
             println!("ファイルを結合しています: {}", config.file_path.display());
 

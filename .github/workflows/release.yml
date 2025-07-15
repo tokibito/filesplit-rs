@@ -81,6 +81,8 @@ jobs:
     name: リリース作成
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # リリース作成に必要な権限
     
     steps:
     - uses: actions/checkout@v4
